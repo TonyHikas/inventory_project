@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, exists, insert
 
 from app.user.dto.user import UserInfoDto, UserCredsDto, CreateUserDto
 from app.user.persistence.models import User
@@ -30,43 +30,45 @@ class UserRepository(BaseRepository):
             ).where(
                 User.id == user_id
             )
-        user = await self.database.fetch_one(query, values)
-        if user is None:
+            result = await session.execute(stmt)
+            row = result.first()
+        if row is None:
             return None
-        return UserInfoDto.parse_obj(user)
+        return UserInfoDto.parse_obj(row)
 
     async def get_creds_by_email(self, email: str) -> UserCredsDto | None:
-        query = '''
-        SELECT user_id, email, password FROM users WHERE email = :email;
-        '''
-        values = {
-            'email': email,
-        }
-        user = await self.database.fetch_one(query, values)
-        if user is None:
+        async with self.ro_session() as session:
+            stmt = select(
+                User.id,
+                User.email,
+                User.password
+            ).where(
+                User.email == email
+            )
+            result = await session.execute(stmt)
+            row = result.first()
+        if row is None:
             return None
-        return UserCredsDto.parse_obj(user)
+        return UserCredsDto.parse_obj(row)
 
     async def email_exists(self, email: str) -> bool:
-        query = '''
-        SELECT COUNT(1) FROM users WHERE email = :email
-        '''
-        values = {
-            'email': email,
-        }
-        users_count = await self.database.execute(query, values)
-        return users_count > 0
+        async with self.ro_session() as session:
+            stmt = exists(User).where(
+                User.email == email
+            ).select()
+            result = await session.execute(stmt)
+        return result.scalars.first()
 
     async def create_user(self, create_user_dto: CreateUserDto):
-        query = '''
-        INSERT INTO users (first_name, phone, email, password, role, created_at, updated_at) 
-        VALUES (:first_name, :phone, :email, :password, :role, :created_at, :updated_at)
-        RETURNING user_id, first_name, phone, email, role;
-        '''
-        values = {
-            **create_user_dto.dict()
-        }
-        user = await self.database.fetch_one(query, values)
-        if user is None:
-            return None
-        return UserInfoDto.parse_obj(user)
+        async with self.ro_session() as session:
+            stmt = insert(
+                User
+            ).values(
+                **create_user_dto.dict()
+            ).returning(
+                User.id,
+                User.email
+            )
+            result = await session.execute(stmt)
+            row = result.first()
+        return UserCredsDto.parse_obj(row)

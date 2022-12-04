@@ -7,7 +7,7 @@ authors = ["Your Name <you@example.com>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 fastapi = "^0.81.0"
-uvicorn = {extras = ["smirea_db_projectandart"], version = "^0.18.3"}
+uvicorn = {extras = ["standart"], version = "^0.18.3"}
 databases = {extras = ["postgresql"], version = "^0.6.1"}
 psycopg2-binary = "^2.9.3"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}

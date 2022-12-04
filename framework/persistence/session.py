@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 @asynccontextmanager
-async def get_context_session(session: sessionmaker):
+async def get_context_session(session):
     """Auto commit on success and rollback on error"""
     try:
         async with session:
@@ -29,4 +29,4 @@ def get_sessionmaker(engine: AsyncEngine) -> sessionmaker:
 
 
 def get_async_engine(dns: str):
-    return create_async_engine(dns=dns)
+    return create_async_engine(dns)

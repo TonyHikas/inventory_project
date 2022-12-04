@@ -8,6 +8,6 @@ WORKDIR /app
 
 COPY poetry.lock pyproject.toml /app/
 
-RUN pip install poetry
+RUN pip install -U pip && pip install poetry
 
-RUN poetry install
+RUN poetry install --no-root

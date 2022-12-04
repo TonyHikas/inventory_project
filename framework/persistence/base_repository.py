@@ -25,7 +25,7 @@ class BaseRepository(ABCBaseRepository):
         self.ro_engine = ro_engine
 
     def session(self):
-        return get_context_session(get_sessionmaker(self.rw_engine))
+        return get_context_session(get_sessionmaker(self.rw_engine)())
 
     def ro_session(self):
-        return get_context_session(get_sessionmaker(self.ro_engine))
+        return get_context_session(get_sessionmaker(self.ro_engine)())

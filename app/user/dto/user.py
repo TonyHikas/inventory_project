@@ -4,10 +4,7 @@ from pydantic import BaseModel
 
 
 class UserDto(BaseModel):
-    first_name: str
-    phone: str | None
     email: str
-    role: str
 
 class UserInfoDto(UserDto):
     user_id: int
@@ -19,5 +16,3 @@ class UserCredsDto(BaseModel):
 
 class CreateUserDto(UserDto):
     password: str
-    created_at: datetime
-    updated_at: datetime

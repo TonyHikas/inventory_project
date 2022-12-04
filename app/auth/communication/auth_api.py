@@ -24,7 +24,8 @@ async def register(
     email_exists = await user_service.email_exists(register_data.email)
     if email_exists:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail='This email already registered')
-    user_create_data = RegisterToCreateMapper().map(register_data)
+    hashed_password = auth_service.get_password_hash(register_data.password)
+    user_create_data = RegisterToCreateMapper().map(register_data, hashed_password)
     user = await user_service.create_user(user_create_data)
     jwt_token = auth_service.create_new_jwt_token(user.user_id)
     return jwt_token
