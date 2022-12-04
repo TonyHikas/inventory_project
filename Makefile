@@ -2,6 +2,7 @@ PROJECT_NAME?=inventory_project
 export COMPOSE_PROJECT_NAME?=$(PROJECT_NAME)
 
 COMPOSE_CMD=docker-compose -p $(COMPOSE_PROJECT_NAME)
+COMPOSE_ONCE=$(COMPOSE_CMD) run --rm app /bin/bash -c
 
 shell:
 	$(COMPOSE_CMD) exec app /bin/bash -c python
@@ -18,13 +19,18 @@ run:
 logs:
 	$(COMPOSE_CMD) logs -f app
 
-poetry:
-	$(COMPOSE_CMD) "cd /app && poetry $(call args)"
+args = `arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${args:-$arg:-${1}}}`
 
-make_migrations:
-	$(COMPOSE_CMD) "alembic revision --autogenerate -m $(call args)"
+poetry:
+	$(COMPOSE_ONCE) "cd /app && poetry $(call args)"
+
+makemigrations:
+	$(COMPOSE_ONCE) "poetry run alembic revision --autogenerate -m $(call args)"
 
 migrate:
-	$(COMPOSE_CMD) "alembic upgrade head"
+	$(COMPOSE_ONCE) "poetry run alembic upgrade head"
+
+%:
+	@:
 
 

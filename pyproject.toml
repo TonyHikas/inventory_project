@@ -8,12 +8,13 @@ authors = ["Your Name <you@example.com>"]
 python = "^3.10"
 fastapi = "^0.81.0"
 uvicorn = {extras = ["standart"], version = "^0.18.3"}
-databases = {extras = ["postgresql"], version = "^0.6.1"}
 psycopg2-binary = "^2.9.3"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 email-validator = "^1.2.1"
 sqlalchemy = "^1.4.44"
+alembic = "^1.8.1"
+asyncpg = "^0.27.0"
 
 [tool.poetry.dev-dependencies]
 
