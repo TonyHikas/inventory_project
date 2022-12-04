@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, String
 
 from framework.persistence.mixins import CommonMixin
 from framework.persistence.models import Base

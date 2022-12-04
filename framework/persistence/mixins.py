@@ -1,7 +1,7 @@
 from sqlalchemy import Column, TIMESTAMP, func, Integer
 
 
-class IdMinix:
+class IdMixin:
     id = Column(Integer, primary_key=True)
 
 
@@ -17,5 +17,5 @@ class CreateUpdateMixin(CreatedAtMixin, UpdatedAtMixin):
     pass
 
 
-class CommonMixin(IdMinix, CreateUpdateMixin):
+class CommonMixin(IdMixin, CreateUpdateMixin):
     pass
