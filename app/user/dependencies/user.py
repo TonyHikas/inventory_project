@@ -2,11 +2,30 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.auth.auth_facade import AuthFacade
-from app.user.user_facade import UserFacade
+from app.user.persistence.user_repository import UserRepository
+from app.user.services.user_service import UserService, ABCUserService
+from framework.dependencies.session import rw_engine_dep, ro_engine_dep
 
 auth_scheme = HTTPBearer()
 
-async def get_current_user(token_info: HTTPAuthorizationCredentials = Depends(auth_scheme)):
+
+async def user_repository_dep(
+        rw_engine=Depends(rw_engine_dep),
+        ro_engine=Depends(ro_engine_dep)
+):
+    return UserRepository(rw_engine, ro_engine)
+
+
+async def user_service_dep(
+        user_repository=Depends(user_repository_dep)
+):
+    return UserService(user_repository)
+
+
+async def current_user_dep(
+        token_info: HTTPAuthorizationCredentials = Depends(auth_scheme),
+        user_service: ABCUserService = Depends(user_service_dep)
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -15,7 +34,7 @@ async def get_current_user(token_info: HTTPAuthorizationCredentials = Depends(au
     token_data = AuthFacade().decode_access_token(token_info.credentials)
     if token_data is None:
         raise credentials_exception
-    user = await UserFacade().get_one(token_data.user_id)
+    user = await user_service.get_one(token_data.user_id)
     if user is None:
         raise credentials_exception
     return user

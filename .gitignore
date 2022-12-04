@@ -15,6 +15,7 @@ ipython_config.py
 
 # Environments
 .env
+.env.postgres
 .venv
 env/
 venv/

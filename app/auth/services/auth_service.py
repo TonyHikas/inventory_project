@@ -1,14 +1,50 @@
+import abc
 from datetime import timedelta, datetime, timezone
 
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 
 from app.auth.dto.token import JwtTokenDto, TokenData, IssuerEnum, SubjectEnum
-from core.settings import JWT_SECRET, JWT_ALGORITHM, ACCESS_TOKEN_EXPIRE_SECONDS, REFRESH_TOKEN_EXPIRE_SECONDS
+from core.settings import settings
+from framework.services.base_service import BaseService
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-class AuthFacade:
+class ABCAuthService(BaseService):
+
+    def create_new_jwt_token(self, user_id: int) -> JwtTokenDto:
+        pass
+
+    def create_access_token(self, user_id: int) -> str:
+        pass
+
+    def decode_access_token(self, access_token: str) -> TokenData | None:
+        pass
+
+    def create_refresh_token(self, user_id: int) -> str:
+        pass
+
+    def decode_refresh_token(self, refresh_token: str) -> TokenData | None:
+        pass
+
+    @staticmethod
+    def create_token(token: TokenData) -> str:
+        pass
+
+    @staticmethod
+    def decode_token(token) -> TokenData:
+        pass
+
+    @staticmethod
+    def verify_password(plain_password, hashed_password) -> bool:
+        pass
+
+    @staticmethod
+    def get_password_hash(password) -> str:
+        pass
+
+
+class AuthService(ABCAuthService):
 
     def create_new_jwt_token(self, user_id: int) -> JwtTokenDto:
         return JwtTokenDto(
@@ -21,7 +57,7 @@ class AuthFacade:
             TokenData(
                 iss=IssuerEnum.auth_module,
                 sub=SubjectEnum.auth,
-                exp=datetime.now(tz=timezone.utc) + timedelta(seconds=ACCESS_TOKEN_EXPIRE_SECONDS),
+                exp=datetime.now(tz=timezone.utc) + timedelta(seconds=settings.ACCESS_TOKEN_EXPIRE_SECONDS),
                 user_id=user_id
             )
         )
@@ -40,7 +76,7 @@ class AuthFacade:
             TokenData(
                 iss=IssuerEnum.auth_module,
                 sub=SubjectEnum.refresh_auth,
-                exp=datetime.now(tz=timezone.utc) + timedelta(seconds=REFRESH_TOKEN_EXPIRE_SECONDS),
+                exp=datetime.now(tz=timezone.utc) + timedelta(seconds=settings.REFRESH_TOKEN_EXPIRE_SECONDS),
                 user_id=user_id
             )
         )
@@ -56,12 +92,12 @@ class AuthFacade:
 
     @staticmethod
     def create_token(token: TokenData) -> str:
-        encoded_jwt = jwt.encode(token.dict(), JWT_SECRET, algorithm=JWT_ALGORITHM)
+        encoded_jwt = jwt.encode(token.dict(), settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
         return encoded_jwt
 
     @staticmethod
     def decode_token(token) -> TokenData:
-        return TokenData.parse_obj(jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM]))
+        return TokenData.parse_obj(jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]))
 
     @staticmethod
     def verify_password(plain_password, hashed_password) -> bool:

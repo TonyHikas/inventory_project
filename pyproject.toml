@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "mirea_db_project"
+name = "Inventory Project"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
@@ -7,12 +7,13 @@ authors = ["Your Name <you@example.com>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 fastapi = "^0.81.0"
-uvicorn = {extras = ["standart"], version = "^0.18.3"}
+uvicorn = {extras = ["smirea_db_projectandart"], version = "^0.18.3"}
 databases = {extras = ["postgresql"], version = "^0.6.1"}
 psycopg2-binary = "^2.9.3"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 email-validator = "^1.2.1"
+sqlalchemy = "^1.4.44"
 
 [tool.poetry.dev-dependencies]
 

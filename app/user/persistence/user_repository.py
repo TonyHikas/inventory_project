@@ -1,16 +1,35 @@
+from sqlalchemy import select
+
 from app.user.dto.user import UserInfoDto, UserCredsDto, CreateUserDto
+from app.user.persistence.models import User
 from framework.persistence.base_repository import BaseRepository
+
+
+class ABCUserRepository(BaseRepository):
+
+    async def get_one(self, user_id: int) -> UserInfoDto | None:
+        pass
+
+    async def get_creds_by_email(self, email: str) -> UserCredsDto | None:
+        pass
+
+    async def email_exists(self, email: str) -> bool:
+        pass
+
+    async def create_user(self, create_user_dto: CreateUserDto):
+        pass
 
 
 class UserRepository(BaseRepository):
 
     async def get_one(self, user_id: int) -> UserInfoDto | None:
-        query = '''
-        SELECT user_id, first_name, phone, email, role FROM users WHERE user_id = :user_id;
-        '''
-        values = {
-            'user_id': user_id,
-        }
+        async with self.ro_session() as session:
+            stmt = select(
+                User.id,
+                User.email
+            ).where(
+                User.id == user_id
+            )
         user = await self.database.fetch_one(query, values)
         if user is None:
             return None
