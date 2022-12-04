@@ -27,7 +27,7 @@ async def register(
     hashed_password = auth_service.get_password_hash(register_data.password)
     user_create_data = RegisterToCreateMapper().map(register_data, hashed_password)
     user = await user_service.create_user(user_create_data)
-    jwt_token = auth_service.create_new_jwt_token(user.user_id)
+    jwt_token = auth_service.create_new_jwt_token(user.id)
     return jwt_token
 
 @router.post(
@@ -52,7 +52,7 @@ async def login(
     if not password_valid:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_text)
 
-    jwt_token = auth_service.create_new_jwt_token(user_creds.user_id)
+    jwt_token = auth_service.create_new_jwt_token(user_creds.id)
     return jwt_token
 
 @router.post(

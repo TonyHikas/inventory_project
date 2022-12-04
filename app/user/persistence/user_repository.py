@@ -57,7 +57,7 @@ class UserRepository(BaseRepository):
                 User.email == email
             ).select()
             result = await session.execute(stmt)
-        return result.scalars.first()
+        return result.scalars().first()
 
     async def create_user(self, create_user_dto: CreateUserDto):
         async with self.ro_session() as session:
@@ -71,4 +71,4 @@ class UserRepository(BaseRepository):
             )
             result = await session.execute(stmt)
             row = result.first()
-        return UserCredsDto.parse_obj(row)
+        return UserInfoDto.parse_obj(row)

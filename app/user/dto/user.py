@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from pydantic import BaseModel
 
 
@@ -7,10 +5,10 @@ class UserDto(BaseModel):
     email: str
 
 class UserInfoDto(UserDto):
-    user_id: int
+    id: int
 
 class UserCredsDto(BaseModel):
-    user_id: int
+    id: int
     email: str
     password: str
 
