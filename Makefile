@@ -19,7 +19,7 @@ run:
 logs:
 	$(COMPOSE_CMD) logs -f app
 
-args = `arg="$(filter-out $@,$(MAKECMDGOALS))" && echo $${args:-$arg:-${1}}}`
+args = $(filter-out $@,$(MAKECMDGOALS))
 
 poetry:
 	$(COMPOSE_ONCE) "cd /app && poetry $(call args)"
@@ -27,8 +27,14 @@ poetry:
 makemigrations:
 	$(COMPOSE_ONCE) "poetry run alembic revision --autogenerate -m $(call args)"
 
+emptymigration:
+	$(COMPOSE_ONCE) "poetry run alembic revision -m $(call args)"
+
 migrate:
 	$(COMPOSE_ONCE) "poetry run alembic upgrade head"
+
+unmigrate:
+	$(COMPOSE_ONCE) "poetry run alembic downgrade -1"
 
 %:
 	@:

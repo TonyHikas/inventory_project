@@ -1,29 +1,46 @@
-from sqlalchemy import Column, String, Integer, ForeignKey
+import enum
 
-from framework.persistence.mixins import CommonMixin, IdMixin
+from sqlalchemy import Column, String, Integer, ForeignKey, Enum, ARRAY
+
+from framework.persistence.mixins import CommonMixin
 from framework.persistence.models import Base
+
+
+class RightEnum(str, enum.Enum):
+    VIEW = 'VIEW'
+    EDIT_ITEMS = 'EDIT_ITEMS'
+    EDIT_NAMESPACE = 'EDIT_NAMESPACE'
+    EDIT_USERS = 'EDIT_USERS'
 
 
 class Namespace(Base, CommonMixin):
     __tablename__ = 'namespace'
 
-    name = Column(String, nullable=False)
-    created_by = Column(
-        Integer,
-        ForeignKey('user.id', ondelete='CASCADE'),
+    name = Column(String(511), nullable=False)
+
+
+class Role(Base, CommonMixin):
+    __tablename__ = 'role'
+
+    name = Column(
+        String(255),
         nullable=False
     )
 
-class Role(Base, IdMixin):
-    __tablename__ = 'role'
+    slug = Column(
+        String(50),
+        nullable=False
+    )
 
-    name = Column(String, nullable=False, unique=True)
+    rights = Column(
+        ARRAY(Enum(RightEnum))
+    )
 
 
 class UserNamespace(Base, CommonMixin):
     __tablename__ = 'user_namespace'
 
-    # todo make user and namespace id unique
+    # todo make user and namespace and role unique
     user_id = Column(
         Integer,
         ForeignKey('user.id', ondelete='CASCADE'),

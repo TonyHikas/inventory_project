@@ -9,7 +9,7 @@ from app.auth.services.auth_service import ABCAuthService
 from app.user.dependencies.user import user_service_dep
 from app.user.services.user_service import ABCUserService
 
-router = APIRouter()
+router = APIRouter(prefix='/auth', tags=['auth'])
 
 @router.post(
     '/register',

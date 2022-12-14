@@ -7,5 +7,5 @@ from framework.persistence.models import Base
 class User(Base, CommonMixin):
     __tablename__ = 'user'
 
-    email = Column(String, nullable=False, unique=True)
+    email = Column(String(255), nullable=False, unique=True)
     password = Column(String, nullable=False)

@@ -24,6 +24,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 from app.user.persistence.models import User
+from app.namespace.persistence.models import Namespace, UserNamespace, Role
 
 target_metadata = Base.metadata
 

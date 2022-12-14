@@ -7,9 +7,9 @@ from framework.persistence.models import Base
 class Location(Base, CommonMixin):
     __tablename__ = 'location'
 
-    name = Column(String, nullable=False)
-    address = Column(String, nullable=False)
-    description = Column(String, nullable=False)
+    name = Column(String(511), nullable=False)
+    address = Column(String(511), nullable=False)
+    description = Column(String(3000), nullable=False)
     namespace_id = Column(
         Integer,
         ForeignKey('namespace.id', ondelete='CASCADE'),

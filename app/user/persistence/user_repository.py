@@ -1,26 +1,32 @@
+import abc
+
 from sqlalchemy import select, exists, insert
 
 from app.user.dto.user import UserInfoDto, UserCredsDto, CreateUserDto
 from app.user.persistence.models import User
-from framework.persistence.base_repository import BaseRepository
+from framework.persistence.base_repository import BaseRepository, ABCBaseRepository
 
 
-class ABCUserRepository(BaseRepository):
+class ABCUserRepository(ABCBaseRepository, abc.ABC):
 
+    @abc.abstractmethod
     async def get_one(self, user_id: int) -> UserInfoDto | None:
         pass
 
+    @abc.abstractmethod
     async def get_creds_by_email(self, email: str) -> UserCredsDto | None:
         pass
 
+    @abc.abstractmethod
     async def email_exists(self, email: str) -> bool:
         pass
 
+    @abc.abstractmethod
     async def create_user(self, create_user_dto: CreateUserDto):
         pass
 
 
-class UserRepository(BaseRepository):
+class UserRepository(ABCUserRepository, BaseRepository):
 
     async def get_one(self, user_id: int) -> UserInfoDto | None:
         async with self.ro_session() as session:
