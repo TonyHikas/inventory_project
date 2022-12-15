@@ -54,3 +54,32 @@ async def create(
     )
     namespace = await namespace_service.create(namespace_dto, user.id, 'owner')
     return NamespaceResponse(**namespace.dict())
+
+@router.put(
+    '/{namespace_id}',
+    response_model=NamespaceResponse
+)
+async def update(
+        namespace_id: int,
+        namespace_request: NamespaceRequest,
+        user: UserInfoDto = Depends(current_user_dep),
+        namespace_service: ABCNamespaceService = Depends(namespace_service_dep)
+):
+    namespace_dto = NamespaceDTO(
+        id=namespace_id,
+        name=namespace_request.name
+    )
+    namespace = await namespace_service.update(namespace_dto, user.id)
+    return NamespaceResponse(**namespace.dict())
+
+@router.delete(
+    '/{namespace_id}',
+    response_model=NamespaceResponse
+)
+async def delete(
+        namespace_id: int,
+        user: UserInfoDto = Depends(current_user_dep),
+        namespace_service: ABCNamespaceService = Depends(namespace_service_dep)
+):
+    namespace = await namespace_service.delete(namespace_id, user.id)
+    return NamespaceResponse(**namespace.dict())

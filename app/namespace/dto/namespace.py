@@ -17,6 +17,8 @@ class NamespaceDTO(CommonDTOMixin, BaseModel):
 
     def get_rights(self) -> list[RightEnum]:
         """Return unique names of all rights."""
+        if self.roles is None or len(self.roles) == 0:
+            return []
         rights = reduce(lambda x, y: x.append(y), [role.rights for role in self.roles])
         return list(set(rights))
 

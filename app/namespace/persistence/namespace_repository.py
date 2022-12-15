@@ -1,6 +1,6 @@
 import abc
 
-from sqlalchemy import select, exists, insert, func
+from sqlalchemy import select, exists, insert, func, update, delete
 
 from app.namespace.dto.namespace import NamespaceDTO, RoleDTO, UserNamespaceWithRoleDTO
 from app.namespace.exceptions import NamespaceNotFoundException, NamespacePermissionDeniedException, \
@@ -32,31 +32,30 @@ class ABCNamespaceRepository(ABCBaseRepository, abc.ABC):
     ) -> int:
         pass
 
-    # @abc.abstractmethod
-    # async def update(self, namespace: NamespaceDTO) -> NamespaceDTO:
-    #     pass
-    #
-    # @abc.abstractmethod
-    # async def delete(self, namespace_id: int) -> NamespaceDTO:
-    #     pass
-    #
-    # @abc.abstractmethod
-    # async def check_rights(
-    #         self,
-    #         user_id: int,
-    #         namespace_id: int,
-    #         rights: list[RightEnum]
-    # ) -> bool:
-    #     """Return True if user has rights to namespace."""
-    #     pass
-    #
-    # async def get_roles(
-    #         self,
-    #         user_id: int,
-    #         namespace_id: int
-    # ) -> list[RoleDTO]:
-    #     pass
-    #
+    @abc.abstractmethod
+    async def update(self, namespace: NamespaceDTO) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def delete(self, namespace_id: int) -> None:
+        pass
+
+    @abc.abstractmethod
+    async def check_rights(
+            self,
+            user_id: int,
+            namespace_id: int,
+            rights: list[RightEnum]
+    ) -> bool:
+        pass
+
+    @abc.abstractmethod
+    async def get_roles(
+            self,
+            user_id: int,
+            namespace_id: int
+    ) -> list[RoleDTO]:
+        pass
 
 
 class NamespaceRepository(ABCNamespaceRepository, BaseRepository):
@@ -148,6 +147,26 @@ class NamespaceRepository(ABCNamespaceRepository, BaseRepository):
             await session.execute(stmt)
 
         return namespace_result.first().id
+
+    async def update(self, namespace: NamespaceDTO) -> None:
+        async with self.session() as session:
+            stmt = update(
+                Namespace
+            ).where(
+                Namespace.id == namespace.id
+            ).values(
+                name=namespace.name
+            )
+            await session.execute(stmt)
+
+    async def delete(self, namespace_id: int) -> None:
+        async with self.session() as session:
+            stmt = delete(
+                Namespace
+            ).where(
+                Namespace.id == namespace_id
+            )
+            await session.execute(stmt)
 
     async def check_rights(
             self,

@@ -1,6 +1,7 @@
 import abc
 
 from app.namespace.dto.namespace import NamespaceDTO, UserNamespaceWithRoleDTO, RoleDTO
+from app.namespace.exceptions import NamespacePermissionDeniedException
 from app.namespace.persistence.models import RightEnum
 from app.namespace.persistence.namespace_repository import ABCNamespaceRepository
 from framework.services.base_service import BaseService
@@ -34,11 +35,11 @@ class ABCNamespaceService(BaseService):
         pass
 
     @abc.abstractmethod
-    async def update(self, namespace: NamespaceDTO) -> NamespaceDTO:
+    async def update(self, namespace: NamespaceDTO, user_id: int) -> NamespaceDTO:
         pass
 
     @abc.abstractmethod
-    async def delete(self, namespace_id: int) -> NamespaceDTO:
+    async def delete(self, namespace_id: int, user_id: int) -> NamespaceDTO:
         pass
 
 
@@ -58,7 +59,6 @@ class NamespaceService(ABCNamespaceService):
         user_namespaces = await self.namespace_repository.get_list(user_id, rights)
         return await self.__map_user_namespaces_to_namespace(user_namespaces)
 
-
     async def create(
             self,
             namespace: NamespaceDTO,
@@ -69,11 +69,28 @@ class NamespaceService(ABCNamespaceService):
         namespace_dto = await self.get_one(namespace_id, user_id)
         return namespace_dto
 
-    async def update(self, namespace: NamespaceDTO) -> NamespaceDTO:
-        return await self.namespace_repository.update(namespace)
+    async def update(self, namespace: NamespaceDTO, user_id: int) -> NamespaceDTO:
+        can_update = await self.namespace_repository.check_rights(
+            user_id=user_id,
+            namespace_id=namespace.id,
+            rights=[RightEnum.EDIT_NAMESPACE]
+        )
+        if not can_update:
+            raise NamespacePermissionDeniedException
+        await self.namespace_repository.update(namespace)
+        return await self.namespace_repository.get_one(namespace.id, user_id)
 
-    async def delete(self, namespace_id: int) -> NamespaceDTO:
-        return await self.namespace_repository.delete(namespace_id)
+    async def delete(self, namespace_id: int, user_id: int) -> NamespaceDTO:
+        can_update = await self.namespace_repository.check_rights(
+            user_id=user_id,
+            namespace_id=namespace_id,
+            rights=[RightEnum.EDIT_NAMESPACE]
+        )
+        if not can_update:
+            raise NamespacePermissionDeniedException
+        namespace_dto = await self.namespace_repository.get_one(namespace_id, user_id)
+        await self.namespace_repository.delete(namespace_id)
+        return namespace_dto
 
     @staticmethod
     async def __map_user_namespaces_to_namespace(
