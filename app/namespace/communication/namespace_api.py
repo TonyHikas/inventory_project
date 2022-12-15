@@ -4,6 +4,7 @@ from app.namespace.communication.schema import NamespaceResponse, NamespaceReque
 from app.namespace.dependencies import namespace_service_dep
 from app.namespace.dto.namespace import NamespaceDTO
 from app.namespace.exceptions import NamespaceNotFoundException
+from app.namespace.persistence.models import RightEnum
 from app.namespace.services.namespace_service import ABCNamespaceService
 from app.user.dependencies.user import current_user_dep
 from app.user.dto.user import UserInfoDto
@@ -31,12 +32,11 @@ async def get_one(
 )
 async def get_list(
         user: UserInfoDto = Depends(current_user_dep),
-        limit: int = Query(default=100, lte=100),
-        offset: int = Query(default=0),
         namespace_service: ABCNamespaceService = Depends(namespace_service_dep)
 ):
     namespace_list = await namespace_service.get_list(
-        user_id=user.id
+        user_id=user.id,
+        rights=[RightEnum.VIEW]
     )
     return [NamespaceResponse(**namespace.dict()) for namespace in namespace_list]
 

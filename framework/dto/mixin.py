@@ -1,21 +1,23 @@
 from datetime import datetime
 
+from pydantic import BaseModel
 
-class IdDTOMixin:
+
+class IdDTOMixin(BaseModel):
     id: int | None = None
 
 
-class CreatedAtDTOMixin:
+class CreatedAtDTOMixin(BaseModel):
     created_at: datetime | None = None
 
 
-class UpdatedAtDTOMixin:
+class UpdatedAtDTOMixin(BaseModel):
     updated_at: datetime | None = None
 
 
-class CreateUpdateDTOMixin(CreatedAtDTOMixin, UpdatedAtDTOMixin):
+class CreateUpdateDTOMixin(CreatedAtDTOMixin, UpdatedAtDTOMixin, BaseModel):
     pass
 
 
-class CommonDTOMixin(IdDTOMixin, CreateUpdateDTOMixin):
+class CommonDTOMixin(IdDTOMixin, CreateUpdateDTOMixin, BaseModel):
     pass

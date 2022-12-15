@@ -1,6 +1,7 @@
 import enum
 
-from sqlalchemy import Column, String, Integer, ForeignKey, Enum, ARRAY
+from sqlalchemy import Column, String, Integer, ForeignKey, Enum
+from sqlalchemy.dialects.postgresql import ARRAY
 
 from framework.persistence.mixins import CommonMixin
 from framework.persistence.models import Base

@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import reduce
 
 from pydantic import BaseModel
@@ -6,11 +7,11 @@ from app.namespace.persistence.models import RightEnum
 from framework.dto.mixin import CommonDTOMixin, IdDTOMixin
 
 
-class RoleDTO(BaseModel, IdDTOMixin):
+class RoleDTO(IdDTOMixin, BaseModel):
     name: str | None = None
     rights: list[RightEnum] | None = None
 
-class NamespaceDTO(BaseModel, CommonDTOMixin):
+class NamespaceDTO(CommonDTOMixin, BaseModel):
     name: str | None = None
     roles: list[RoleDTO] | None = None
 
@@ -24,6 +25,11 @@ class NamespaceDTO(BaseModel, CommonDTOMixin):
         return set(rights).issubset(self.get_rights())
 
 
-class UserNamespaceWithRoleDTO(BaseModel, CommonDTOMixin):  # todo
-    namespace_name: str
-    role_name: str
+class UserNamespaceWithRoleDTO(BaseModel):
+    namespace_id: int | None = None
+    namespace_name: str | None = None
+    namespace_created_at: datetime | None = None
+    namespace_updated_at: datetime | None = None
+    role_id: int | None = None
+    role_name: str | None = None
+    role_rights: list[RightEnum] | None = None

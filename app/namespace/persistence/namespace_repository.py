@@ -1,8 +1,8 @@
 import abc
 
-from sqlalchemy import select, exists, insert
+from sqlalchemy import select, exists, insert, func
 
-from app.namespace.dto.namespace import NamespaceDTO, RoleDTO
+from app.namespace.dto.namespace import NamespaceDTO, RoleDTO, UserNamespaceWithRoleDTO
 from app.namespace.exceptions import NamespaceNotFoundException, NamespacePermissionDeniedException, \
     RoleNotFoundException
 from app.namespace.persistence.models import Namespace, RightEnum, UserNamespace, Role
@@ -20,7 +20,7 @@ class ABCNamespaceRepository(ABCBaseRepository, abc.ABC):
             self,
             user_id: int,
             rights: list[RightEnum]
-    ) -> list[NamespaceDTO]:
+    ) -> list[UserNamespaceWithRoleDTO]:
         pass
 
     @abc.abstractmethod
@@ -29,7 +29,7 @@ class ABCNamespaceRepository(ABCBaseRepository, abc.ABC):
             namespace: NamespaceDTO,
             user_id: int,
             role_slug: str
-    ) -> NamespaceDTO:
+    ) -> int:
         pass
 
     # @abc.abstractmethod
@@ -57,6 +57,7 @@ class ABCNamespaceRepository(ABCBaseRepository, abc.ABC):
     # ) -> list[RoleDTO]:
     #     pass
     #
+
 
 class NamespaceRepository(ABCNamespaceRepository, BaseRepository):
 
@@ -87,25 +88,26 @@ class NamespaceRepository(ABCNamespaceRepository, BaseRepository):
             self,
             user_id: int,
             rights: list[RightEnum]
-    ) -> list[NamespaceDTO]:
+    ) -> list[UserNamespaceWithRoleDTO]:
         async with self.ro_session() as session:
             stmt = select(
-                Namespace.id,
-                Namespace.name,
-                Namespace.created_at,
-                Namespace.updated_at,
-                Role.name,
-                Role.rights
+                Namespace.id.label('namespace_id'),
+                Namespace.name.label('namespace_name'),
+                Namespace.created_at.label('namespace_created_at'),
+                Namespace.updated_at.label('namespace_updated_at'),
+                Role.id.label('role_id'),
+                Role.name.label('role_name'),
+                Role.rights.label('role_rights')
             ).select_from(
-                UserNamespace.join(Namespace).join(Role)
+                UserNamespace.__table__.join(Namespace).join(Role)
             ).where(
                 UserNamespace.user_id == user_id,
-                Role.rights.comparator.contains(rights)  # todo check
+                Role.rights.comparator.contains(rights)
             )
 
             result = await session.execute(stmt)
         return [
-            NamespaceDTO.parse_obj(row) for row in result
+            UserNamespaceWithRoleDTO.parse_obj(row) for row in result
         ]
 
     async def create(
@@ -113,7 +115,8 @@ class NamespaceRepository(ABCNamespaceRepository, BaseRepository):
             namespace: NamespaceDTO,
             user_id: int,
             role_slug: str
-    ) -> NamespaceDTO:
+    ) -> int:
+        """Create Namespace and UserNamespace with role. Returning namespace id."""
         async with self.ro_session() as session:
             stmt = select(
                 Role.id,
@@ -126,41 +129,25 @@ class NamespaceRepository(ABCNamespaceRepository, BaseRepository):
             raise RoleNotFoundException
 
         async with self.session() as session:
-            # todo transaction
             stmt = insert(
                 Namespace
             ).values(
                 name=namespace.name
             ).returning(
-                Namespace.id,
-                Namespace.name,
-                Namespace.created_at,
-                Namespace.updated_at
+                Namespace.id
             )
-            result = await session.execute(stmt)
-            namespace_row = result.first()
-            session.commit()
+            namespace_result = await session.execute(stmt)
 
             stmt = insert(
                 UserNamespace
             ).values(
-                UserNamespace.namespace_id == namespace_row.id,
-                UserNamespace.user_id == user_id,
-                UserNamespace.role_id == role_row.id
-            ).returning(
-                Namespace.id,
-                Namespace.name,
-                Namespace.created_at,
-                Namespace.updated_at
+                namespace_id=func.currval('namespace_id_seq'),
+                user_id=user_id,
+                role_id=role_row.id
             )
-            result = await session.execute(stmt)
-            row = result.first()
+            await session.execute(stmt)
 
-
-        return [
-            NamespaceDTO.parse_obj(row) for row in result
-        ]
-
+        return namespace_result.first().id
 
     async def check_rights(
             self,
@@ -172,11 +159,11 @@ class NamespaceRepository(ABCNamespaceRepository, BaseRepository):
             stmt = exists(
                 UserNamespace
             ).select_from(
-                UserNamespace.join(Role)
+                UserNamespace.__table__.join(Role)
             ).where(
                 UserNamespace.user_id == user_id,
                 UserNamespace.namespace_id == namespace_id,
-                Role.rights.comparator.contains(rights)  # todo check
+                Role.rights.comparator.contains(rights)
             ).select()
             result = await session.execute(stmt)
         return result.scalars().first()
@@ -192,12 +179,12 @@ class NamespaceRepository(ABCNamespaceRepository, BaseRepository):
                 Role.name,
                 Role.rights
             ).select_from(
-                UserNamespace.join(Role)
+                UserNamespace.__table__.join(Role)
             ).where(
                 UserNamespace.user_id == user_id,
                 UserNamespace.namespace_id == namespace_id,
             )
             result = await session.execute(stmt)
         return [
-            Role.parse_obj(row) for row in result
+            RoleDTO.parse_obj(row) for row in result
         ]

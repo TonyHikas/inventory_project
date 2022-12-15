@@ -1,6 +1,7 @@
 import abc
 
-from app.namespace.dto.namespace import NamespaceDTO
+from app.namespace.dto.namespace import NamespaceDTO, UserNamespaceWithRoleDTO, RoleDTO
+from app.namespace.persistence.models import RightEnum
 from app.namespace.persistence.namespace_repository import ABCNamespaceRepository
 from framework.services.base_service import BaseService
 
@@ -18,7 +19,8 @@ class ABCNamespaceService(BaseService):
     @abc.abstractmethod
     async def get_list(
             self,
-            user_id: int
+            user_id: int,
+            rights: list[RightEnum]
     ) -> list[NamespaceDTO]:
         pass
 
@@ -48,8 +50,14 @@ class NamespaceService(ABCNamespaceService):
     async def get_one(self, namespace_id: int, user_id: int) -> NamespaceDTO:
         return await self.namespace_repository.get_one(namespace_id, user_id)
 
-    async def get_list(self, user_id: int, limit: int, offset: int) -> list[NamespaceDTO]:
-        return await self.namespace_repository.get_list(user_id, limit, offset)
+    async def get_list(
+        self,
+        user_id: int,
+        rights: list[RightEnum]
+    ) -> list[NamespaceDTO]:
+        user_namespaces = await self.namespace_repository.get_list(user_id, rights)
+        return await self.__map_user_namespaces_to_namespace(user_namespaces)
+
 
     async def create(
             self,
@@ -57,10 +65,36 @@ class NamespaceService(ABCNamespaceService):
             user_id: int,
             role_slug: str
     ) -> NamespaceDTO:
-        return await self.namespace_repository.create(namespace, user_id, role_slug)
+        namespace_id = await self.namespace_repository.create(namespace, user_id, role_slug)
+        namespace_dto = await self.get_one(namespace_id, user_id)
+        return namespace_dto
 
     async def update(self, namespace: NamespaceDTO) -> NamespaceDTO:
         return await self.namespace_repository.update(namespace)
 
     async def delete(self, namespace_id: int) -> NamespaceDTO:
         return await self.namespace_repository.delete(namespace_id)
+
+    @staticmethod
+    async def __map_user_namespaces_to_namespace(
+            user_namespaces: list[UserNamespaceWithRoleDTO]
+    ) -> list[NamespaceDTO]:
+        namespaces_dict: dict[int, NamespaceDTO] = {}
+        for user_namespace in user_namespaces:
+            if not namespaces_dict.get(user_namespace.namespace_id):
+                namespaces_dict[user_namespace.namespace_id] = NamespaceDTO(
+                    id=user_namespace.namespace_id,
+                    name=user_namespace.namespace_name,
+                    created_at=user_namespace.namespace_created_at,
+                    updated_at=user_namespace.namespace_updated_at,
+                    roles=[]
+                )
+            namespaces_dict[user_namespace.namespace_id].roles.append(
+                RoleDTO(
+                    id=user_namespace.role_id,
+                    name=user_namespace.role_name,
+                    rights=user_namespace.role_rights
+                )
+            )
+
+        return [*namespaces_dict.values()]
