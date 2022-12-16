@@ -42,6 +42,14 @@ class ABCNamespaceService(BaseService):
     async def delete(self, namespace_id: int, user_id: int) -> NamespaceDTO:
         pass
 
+    @abc.abstractmethod
+    async def check_rights(
+            self,
+            user_id: int,
+            namespace_id: int,
+            rights: list[RightEnum]
+    ) -> bool:
+        pass
 
 class NamespaceService(ABCNamespaceService):
 
@@ -91,6 +99,14 @@ class NamespaceService(ABCNamespaceService):
         namespace_dto = await self.namespace_repository.get_one(namespace_id, user_id)
         await self.namespace_repository.delete(namespace_id)
         return namespace_dto
+
+    async def check_rights(
+            self,
+            user_id: int,
+            namespace_id: int,
+            rights: list[RightEnum]
+    ) -> bool:
+        return await self.namespace_repository.check_rights(user_id, namespace_id, rights)
 
     @staticmethod
     async def __map_user_namespaces_to_namespace(

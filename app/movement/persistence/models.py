@@ -15,10 +15,10 @@ class ItemMovement(Base, CommonMixin):
     location_from_id = Column(
         Integer,
         ForeignKey('location.id', ondelete='CASCADE'),
-        nullable=False
+        nullable=True
     )
     location_to_id = Column(
         Integer,
         ForeignKey('location.id', ondelete='CASCADE'),
-        nullable=False
+        nullable=True
     )
