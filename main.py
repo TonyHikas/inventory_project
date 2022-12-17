@@ -4,6 +4,7 @@ from app.auth.communication import auth_api
 from app.user.communication import user_api
 from app.namespace.communication import namespace_api
 from app.item.communication import item_api
+from app.movement.communication import movement_api
 
 app = FastAPI(title='Api for inventory project by Anton.')
 
@@ -15,6 +16,7 @@ is_authenticated_router = APIRouter()  # todo add auth depend
 is_authenticated_router.include_router(user_api.router)
 is_authenticated_router.include_router(namespace_api.router)
 is_authenticated_router.include_router(item_api.router)
+is_authenticated_router.include_router(movement_api.router)
 
 allow_any_router.include_router(auth_api.router)
 
