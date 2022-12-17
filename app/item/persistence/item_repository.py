@@ -1,12 +1,11 @@
 import abc
 
-from sqlalchemy import select, insert, func, update, delete
+from sqlalchemy import select, insert, func, delete
 
 from app.item.dto.item import ItemDTO, ItemImageDTO
+from app.item.exceptions import ItemNotFoundException
 from app.item.persistence.models import Item, ItemImage
-from app.namespace.dto.namespace import NamespaceDTO
-from app.namespace.exceptions import NamespaceNotFoundException, RoleNotFoundException
-from app.namespace.persistence.models import Namespace, UserNamespace, Role
+from app.movement.persistence.models import ItemMovement
 from framework.persistence.base_repository import BaseRepository, ABCBaseRepository
 
 
@@ -22,7 +21,9 @@ class ABCItemRepository(ABCBaseRepository, abc.ABC):
     @abc.abstractmethod
     async def get_list(
             self,
-            namespace_id: int
+            namespace_id: int,
+            limit: int | None = None,
+            offset: int | None = None
     ) -> list[ItemDTO]:
         pass
 
@@ -48,11 +49,16 @@ class ItemRepository(ABCItemRepository, BaseRepository):
             self,
             item_id: int
     ) -> ItemDTO:
-        async with self.ro_session() as session:
+        async with self.session() as session:
             stmt = select(
                 Item.id,
                 Item.name,
-                # todo
+                Item.description,
+                Item.type,
+                Item.count,
+                Item.unit,
+                Item.namespace_id,
+                Item.parent_id,
                 Item.created_at,
                 Item.updated_at
             ).where(
@@ -71,7 +77,7 @@ class ItemRepository(ABCItemRepository, BaseRepository):
             images_result = await session.execute(stmt)
 
         if item_row is None:
-            raise NamespaceNotFoundException
+            raise ItemNotFoundException
 
         item_dto = ItemDTO.parse_obj(item_row)
         item_dto.images = []
@@ -84,7 +90,9 @@ class ItemRepository(ABCItemRepository, BaseRepository):
 
     async def get_list(
             self,
-            namespace_id: int
+            namespace_id: int,
+            limit: int | None = None,
+            offset: int | None = None
     ) -> list[ItemDTO]:
         result_dict: dict[int, ItemDTO] = {}
         item_ids: list[int] = []
@@ -92,16 +100,27 @@ class ItemRepository(ABCItemRepository, BaseRepository):
             items_stmt = select(
                 Item.id,
                 Item.name,
-                # todo
+                Item.description,
+                Item.type,
+                Item.count,
+                Item.unit,
+                Item.namespace_id,
+                Item.parent_id,
                 Item.created_at,
                 Item.updated_at
             ).where(
                 Item.namespace_id == namespace_id
             )
+
+            if limit is not None:
+                items_stmt = items_stmt.limit(limit)
+            if offset is not None:
+                items_stmt = items_stmt.offset(offset)
+
             items_result = await session.execute(items_stmt)
 
             for item_row in items_result:
-                result_dict[item_row.id] = ItemDTO.parse_obj(**item_row)
+                result_dict[item_row.id] = ItemDTO.parse_obj(item_row)
                 result_dict[item_row.id].images = []
                 item_ids.append(item_row.id)
 
@@ -150,6 +169,16 @@ class ItemRepository(ABCItemRepository, BaseRepository):
                 )
                 await session.execute(image_stmt)
 
+            if item.parent_id is not None:
+                item_stmt = insert(
+                    ItemMovement
+                ).values(
+                    item_id=func.currval('item_id_seq'),
+                    from_item_id=None,
+                    to_item_id=item.parent_id
+                )
+                await session.execute(item_stmt)
+
         return item_result.first().id
 
     async def update(self, item: ItemDTO) -> None:
@@ -161,64 +190,5 @@ class ItemRepository(ABCItemRepository, BaseRepository):
                 Item
             ).where(
                 Item.id == item_id
-            )
-            await session.execute(stmt)
-
-    async def create(
-            self,
-            namespace: NamespaceDTO,
-            user_id: int,
-            role_slug: str
-    ) -> int:
-        """Create Namespace and UserNamespace with role. Returning namespace id."""
-        async with self.ro_session() as session:
-            stmt = select(
-                Role.id,
-            ).where(
-                Role.slug == role_slug
-            )
-            result = await session.execute(stmt)
-            role_row = result.first()
-        if role_row is None:
-            raise RoleNotFoundException
-
-        async with self.session() as session:
-            stmt = insert(
-                Namespace
-            ).values(
-                name=namespace.name
-            ).returning(
-                Namespace.id
-            )
-            namespace_result = await session.execute(stmt)
-
-            stmt = insert(
-                UserNamespace
-            ).values(
-                namespace_id=func.currval('namespace_id_seq'),
-                user_id=user_id,
-                role_id=role_row.id
-            )
-            await session.execute(stmt)
-
-        return namespace_result.first().id
-
-    async def update(self, namespace: NamespaceDTO) -> None:
-        async with self.session() as session:
-            stmt = update(
-                Namespace
-            ).where(
-                Namespace.id == namespace.id
-            ).values(
-                name=namespace.name
-            )
-            await session.execute(stmt)
-
-    async def delete(self, namespace_id: int) -> None:
-        async with self.session() as session:
-            stmt = delete(
-                Namespace
-            ).where(
-                Namespace.id == namespace_id
             )
             await session.execute(stmt)

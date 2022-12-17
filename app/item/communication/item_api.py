@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends
+from fastapi import APIRouter, status, Depends, Query
 
 from app.item.communication.schema import ItemResponse, ItemRequest
 from app.item.dependencies import item_service_dep
@@ -30,12 +30,16 @@ async def get_one(
 )
 async def get_list(
         namespace_id: int,
+        limit: int = Query(default=20, ge=0, le=50),
+        offset: int = Query(default=0, ge=0),
         user: UserInfoDto = Depends(current_user_dep),
         item_service: ABCItemService = Depends(item_service_dep)
 ):
     item_list = await item_service.get_list(
         namespace_id=namespace_id,
-        user_id=user.id
+        user_id=user.id,
+        limit=limit,
+        offset=offset
     )
     return [ItemResponse(**item.dict()) for item in item_list]
 

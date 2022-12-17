@@ -2,6 +2,8 @@ import abc
 
 from app.item.dto.item import ItemDTO
 from app.item.persistence.item_repository import ABCItemRepository
+from app.movement.dto.movement import MovementDTO
+from app.movement.services.movement_service import ABCMovementService
 from app.namespace.dto.namespace import NamespaceDTO
 from app.namespace.exceptions import NamespacePermissionDeniedException
 from app.namespace.persistence.models import RightEnum
@@ -28,6 +30,8 @@ class ABCItemService(BaseService):
             self,
             namespace_id: int,
             user_id: int,
+            limit: int | None = None,
+            offset: int | None = None
     ) -> list[ItemDTO]:
         pass
 
@@ -70,22 +74,24 @@ class ItemService(ABCItemService):
             self,
             namespace_id: int,
             user_id: int,
+            limit: int | None = None,
+            offset: int | None = None
     ) -> list[ItemDTO]:
         if not await self.namespace_service.check_rights(user_id, namespace_id, [RightEnum.VIEW]):
             raise NamespacePermissionDeniedException
 
-        return await self.item_repository.get_list(namespace_id)
+        return await self.item_repository.get_list(namespace_id, limit, offset)
 
     async def create(
             self,
             item: ItemDTO,
             user_id: int
     ) -> ItemDTO:
-        # todo add movement in transaction
         if not await self.namespace_service.check_rights(user_id, item.namespace_id, [RightEnum.EDIT_ITEMS]):
             raise NamespacePermissionDeniedException
         item_id = await self.item_repository.create(item)
-        return await self.item_repository.get_one(item_id)
+        item_dto = await self.item_repository.get_one(item_id)
+        return item_dto
 
     async def update(self, namespace: NamespaceDTO, user_id: int) -> NamespaceDTO:
         # todo add movement

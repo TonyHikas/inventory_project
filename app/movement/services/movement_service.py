@@ -12,21 +12,13 @@ class ABCMovementService(BaseService):
             self,
             movement_repository: ABCMovementRepository
     ) -> None:
-        pass
+        self.movement_repository = None
 
     @abc.abstractmethod
     async def get_list(
             self,
             item_id: int
     ) -> list[MovementDTO]:
-        """!!! BEFORE USE CHECK RIGHTS. !!!"""
-        pass
-
-    @abc.abstractmethod
-    async def create(
-            self,
-            movement: MovementDTO,
-    ) -> int:
         """!!! BEFORE USE CHECK RIGHTS. !!!"""
         pass
 
@@ -44,9 +36,3 @@ class MovementService(ABCMovementService):
             item_id: int
     ) -> list[MovementDTO]:
         return await self.movement_repository.get_list(item_id)
-
-    async def create(
-            self,
-            movement: MovementDTO,
-    ) -> int:
-        return await self.movement_repository.create(movement)

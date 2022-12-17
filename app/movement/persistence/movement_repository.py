@@ -16,13 +16,6 @@ class ABCMovementRepository(ABCBaseRepository, abc.ABC):
     ) -> list[MovementDTO]:
         pass
 
-    @abc.abstractmethod
-    async def create(
-            self,
-            movement: MovementDTO
-    ) -> int:
-        pass
-
 
 class MovementRepository(ABCMovementRepository, BaseRepository):
 
@@ -44,20 +37,3 @@ class MovementRepository(ABCMovementRepository, BaseRepository):
             result = await session.execute(movement_stmt)
 
         return [MovementDTO.parse_obj(row) for row in result]
-
-    async def create(
-            self,
-            movement: MovementDTO
-    ) -> int:
-        async with self.session() as session:
-            item_stmt = insert(
-                ItemMovement
-            ).values(
-                from_item_id=movement.from_item_id,
-                to_item_id=movement.to_item_id
-            ).returning(
-                ItemMovement.id
-            )
-            result = await session.execute(item_stmt)
-
-        return result.first().id

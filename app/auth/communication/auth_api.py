@@ -36,7 +36,7 @@ async def register(
     responses={status.HTTP_400_BAD_REQUEST: {'description': 'Auth data not valid'}}
 )
 async def login(
-        email: EmailStr,
+        email: EmailStr, # todo change to body
         password: str,
         user_service: ABCUserService = Depends(user_service_dep),
         auth_service: ABCAuthService = Depends(auth_service_dep),
@@ -61,7 +61,7 @@ async def login(
     responses={status.HTTP_400_BAD_REQUEST: {'description': 'Token is not valid or expired'}}
 )
 async def refresh(
-        refresh_token: str,
+        refresh_token: str, # todo change to body
         auth_service: ABCAuthService = Depends(auth_service_dep),
 ) -> str:
     token_data = auth_service.decode_refresh_token(refresh_token)
