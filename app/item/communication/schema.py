@@ -37,4 +37,6 @@ class ItemResponse(BaseModel):
     unit: ItemUnitEnum
     namespace_id: int
     parent_id: int | None
+    created_at: datetime
+    updated_at: datetime
     images: list[ItemImageResponse]

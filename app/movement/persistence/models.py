@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey
 
 from framework.persistence.mixins import CommonMixin
 from framework.persistence.models import Base
@@ -12,13 +12,13 @@ class ItemMovement(Base, CommonMixin):
         ForeignKey('item.id', ondelete='CASCADE'),
         nullable=False
     )
-    location_from_id = Column(
+    from_item_id = Column(
         Integer,
-        ForeignKey('location.id', ondelete='CASCADE'),
+        ForeignKey('item.id', ondelete='CASCADE'),
         nullable=True
     )
-    location_to_id = Column(
+    to_item_id = Column(
         Integer,
-        ForeignKey('location.id', ondelete='CASCADE'),
+        ForeignKey('item.id', ondelete='CASCADE'),
         nullable=True
     )

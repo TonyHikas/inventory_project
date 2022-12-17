@@ -25,6 +25,8 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 from app.user.persistence.models import User
 from app.namespace.persistence.models import Namespace, UserNamespace, Role
+from app.item.persistence.models import Item, ItemImage
+from app.movement.persistence.models import ItemMovement
 
 target_metadata = Base.metadata
 
