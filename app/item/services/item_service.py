@@ -1,6 +1,7 @@
 import abc
 
 from app.item.dto.item import ItemDTO
+from app.item.exceptions import ChangeNamespaceException
 from app.item.persistence.item_repository import ABCItemRepository
 from app.movement.dto.movement import MovementDTO
 from app.movement.services.movement_service import ABCMovementService
@@ -93,10 +94,15 @@ class ItemService(ABCItemService):
         item_dto = await self.item_repository.get_one(item_id)
         return item_dto
 
-    async def update(self, namespace: NamespaceDTO, user_id: int) -> NamespaceDTO:
-        # todo add movement
-        # todo write
-        pass
+    async def update(self, item: ItemDTO, user_id: int) -> ItemDTO:
+        item_before = await self.item_repository.get_one(item.id)
+        if item_before.namespace_id != item.namespace_id:
+            raise ChangeNamespaceException
+        if not await self.namespace_service.check_rights(user_id, item.namespace_id, [RightEnum.EDIT_ITEMS]):
+            raise NamespacePermissionDeniedException
+        await self.item_repository.update(item)
+        item_dto = await self.item_repository.get_one(item.id)
+        return item_dto
 
     async def delete(self, item_id: int, user_id: int) -> ItemDTO:
         item_dto = await self.item_repository.get_one(item_id)
