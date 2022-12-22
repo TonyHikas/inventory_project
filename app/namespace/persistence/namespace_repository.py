@@ -57,6 +57,28 @@ class ABCNamespaceRepository(ABCBaseRepository, abc.ABC):
     ) -> list[RoleDTO]:
         pass
 
+    @abc.abstractmethod
+    async def add_user_role(
+            self,
+            user_id: int,
+            namespace_id: int,
+            role_id: int
+    ):
+        pass
+
+    @abc.abstractmethod
+    async def remove_user_role(
+            self,
+            user_id: int,
+            namespace_id: int,
+            role_id: int
+    ):
+        pass
+
+    @abc.abstractmethod
+    async def get_all_roles(self) -> list[RoleDTO]:
+        pass
+
 
 class NamespaceRepository(ABCNamespaceRepository, BaseRepository):
 
@@ -207,3 +229,48 @@ class NamespaceRepository(ABCNamespaceRepository, BaseRepository):
         return [
             RoleDTO.parse_obj(row) for row in result
         ]
+
+    async def add_user_role(
+            self,
+            user_id: int,
+            namespace_id: int,
+            role_id: int
+    ):
+        async with self.session() as session:
+            stmt = insert(
+                UserNamespace
+            ).values(
+                namespace_id=namespace_id,
+                user_id=user_id,
+                role_id=role_id
+            )
+            await session.execute(stmt)
+
+    async def remove_user_role(
+            self,
+            user_id: int,
+            namespace_id: int,
+            role_id: int
+    ):
+        async with self.session() as session:
+            stmt = delete(
+                UserNamespace
+            ).where(
+                UserNamespace.namespace_id == namespace_id,
+                UserNamespace.user_id == user_id,
+                UserNamespace.role_id == role_id
+            )
+            await session.execute(stmt)
+
+    async def get_all_roles(self) -> list[RoleDTO]:
+        async with self.ro_session() as session:
+            stmt = select(
+                Role.id,
+                Role.name,
+                Role.rights
+            )
+            result = await session.execute(stmt)
+        return [
+            RoleDTO.parse_obj(row) for row in result
+        ]
+

@@ -243,7 +243,7 @@ class ItemRepository(ABCItemRepository, BaseRepository):
                     )
                     await session.execute(delete_image_stmt)
 
-            if item.parent_id is not None and item.parent_id != item_before.parent_id:
+            if item.parent_id != item_before.parent_id:
                 item_stmt = insert(
                     ItemMovement
                 ).values(

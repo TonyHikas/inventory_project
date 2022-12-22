@@ -51,6 +51,30 @@ class ABCNamespaceService(BaseService):
     ) -> bool:
         pass
 
+    @abc.abstractmethod
+    async def add_user_role(
+            self,
+            request_user_id: int,
+            user_id: int,
+            namespace_id: int,
+            role_id: int
+    ):
+        pass
+
+    @abc.abstractmethod
+    async def remove_user_role(
+            self,
+            request_user_id: int,
+            user_id: int,
+            namespace_id: int,
+            role_id: int
+    ):
+        pass
+
+    @abc.abstractmethod
+    async def get_all_roles(self) -> list[RoleDTO]:
+        pass
+
 class NamespaceService(ABCNamespaceService):
 
     def __init__(self, namespace_repository: ABCNamespaceRepository) -> None:
@@ -131,3 +155,38 @@ class NamespaceService(ABCNamespaceService):
             )
 
         return [*namespaces_dict.values()]
+
+    async def add_user_role(
+            self,
+            request_user_id: int,
+            user_id: int,
+            namespace_id: int,
+            role_id: int
+    ):
+        can_update = await self.namespace_repository.check_rights(
+            user_id=request_user_id,
+            namespace_id=namespace_id,
+            rights=[RightEnum.EDIT_USERS]
+        )
+        if not can_update:
+            raise NamespacePermissionDeniedException
+        await self.namespace_repository.add_user_role(user_id, namespace_id, role_id)
+
+    async def remove_user_role(
+            self,
+            request_user_id: int,
+            user_id: int,
+            namespace_id: int,
+            role_id: int
+    ):
+        can_update = await self.namespace_repository.check_rights(
+            user_id=user_id,
+            namespace_id=namespace_id,
+            rights=[RightEnum.EDIT_USERS]
+        )
+        if not can_update:
+            raise NamespacePermissionDeniedException
+        await self.namespace_repository.remove_user_role(user_id, namespace_id, role_id)
+
+    async def get_all_roles(self) -> list[RoleDTO]:
+        return await self.namespace_repository.get_all_roles()

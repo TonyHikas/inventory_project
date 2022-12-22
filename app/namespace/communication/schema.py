@@ -17,3 +17,7 @@ class NamespaceResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     roles: list[RoleResponse]
+
+class NamespaceEditRoleRequest(BaseModel):
+    user_id: int
+    role_id: int

@@ -1,6 +1,6 @@
 import enum
 
-from sqlalchemy import Column, String, Integer, ForeignKey, Enum
+from sqlalchemy import Column, String, Integer, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ARRAY
 
 from framework.persistence.mixins import CommonMixin
@@ -56,4 +56,7 @@ class UserNamespace(Base, CommonMixin):
         Integer,
         ForeignKey('role.id', ondelete='CASCADE'),
         nullable=False
+    )
+    __table_args__ = (
+        UniqueConstraint('user_id', 'namespace_id', 'role_id', name='user_namespace_role_constraint'),
     )
