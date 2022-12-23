@@ -27,6 +27,10 @@ class ABCItemService(BaseService):
         pass
 
     @abc.abstractmethod
+    async def get_one_min(self, item_id: int, user_id: int) -> ItemDTO:
+        pass
+
+    @abc.abstractmethod
     async def get_list(
             self,
             namespace_id: int,
@@ -65,6 +69,14 @@ class ItemService(ABCItemService):
 
     async def get_one(self, item_id: int, user_id: int) -> ItemDTO:
         item_dto = await self.item_repository.get_one(item_id)
+
+        if not await self.namespace_service.check_rights(user_id, item_dto.namespace_id, [RightEnum.VIEW]):
+            raise NamespacePermissionDeniedException
+
+        return item_dto
+
+    async def get_one_min(self, item_id: int, user_id: int) -> ItemDTO:
+        item_dto = await self.item_repository.get_one_min(item_id)
 
         if not await self.namespace_service.check_rights(user_id, item_dto.namespace_id, [RightEnum.VIEW]):
             raise NamespacePermissionDeniedException

@@ -42,7 +42,6 @@ class Role(Base, CommonMixin):
 class UserNamespace(Base, CommonMixin):
     __tablename__ = 'user_namespace'
 
-    # todo make user and namespace and role unique
     user_id = Column(
         Integer,
         ForeignKey('user.id', ondelete='CASCADE'),

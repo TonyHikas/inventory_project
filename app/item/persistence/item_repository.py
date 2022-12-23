@@ -19,6 +19,13 @@ class ABCItemRepository(ABCBaseRepository, abc.ABC):
         pass
 
     @abc.abstractmethod
+    async def get_one_min(
+            self,
+            item_id: int
+    ) -> ItemDTO:
+        pass
+
+    @abc.abstractmethod
     async def get_list(
             self,
             namespace_id: int,
@@ -87,6 +94,27 @@ class ItemRepository(ABCItemRepository, BaseRepository):
             )
 
         return item_dto
+
+    async def get_one_min(
+            self,
+            item_id: int
+    ) -> ItemDTO:
+        async with self.session() as session:
+            item_stmt = select(
+                Item.id,
+                Item.name,
+                func.short_line(Item.description).label('description'),
+                Item.namespace_id,
+            ).where(
+                Item.id == item_id
+            )
+            item_result = await session.execute(item_stmt)
+            item_row = item_result.first()
+
+        if item_row is None:
+            raise ItemNotFoundException
+
+        return ItemDTO.parse_obj(item_row)
 
     async def get_list(
             self,

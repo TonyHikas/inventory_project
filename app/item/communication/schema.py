@@ -40,3 +40,8 @@ class ItemResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     images: list[ItemImageResponse]
+
+class ItemMinResponse(BaseModel):
+    id: int
+    name: str
+    description: str

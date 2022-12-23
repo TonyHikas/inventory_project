@@ -20,7 +20,7 @@ def upgrade() -> None:
     op.execute(
         '''
         CREATE FUNCTION short_line (text) RETURNS text AS $$
-        select (substring ($1 from length ($1) - 10 ) || '...')
+        select (left ($1, 10) || '...')
         $$ LANGUAGE sql;
         '''
     )

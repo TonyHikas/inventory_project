@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, Depends, Query
 
-from app.item.communication.schema import ItemResponse, ItemRequest
+from app.item.communication.schema import ItemResponse, ItemRequest, ItemMinResponse
 from app.item.dependencies import item_service_dep
 from app.item.dto.item import ItemDTO
 from app.item.services.item_service import ABCItemService
@@ -20,8 +20,21 @@ async def get_one(
         user: UserInfoDto = Depends(current_user_dep),
         item_service: ABCItemService = Depends(item_service_dep)
 ):
-    namespace = await item_service.get_one(item_id, user.id)
-    return ItemResponse(**namespace.dict())
+    item = await item_service.get_one(item_id, user.id)
+    return ItemResponse(**item.dict())
+
+@router.get(
+    '/{item_id}/min',
+    response_model=ItemMinResponse,
+    responses={status.HTTP_404_NOT_FOUND: {}}
+)
+async def get_one_min(
+        item_id: int,
+        user: UserInfoDto = Depends(current_user_dep),
+        item_service: ABCItemService = Depends(item_service_dep)
+):
+    item = await item_service.get_one_min(item_id, user.id)
+    return ItemMinResponse.parse_obj(item)
 
 
 @router.get(
