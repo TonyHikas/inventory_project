@@ -30,7 +30,8 @@ class Role(Base, CommonMixin):
 
     slug = Column(
         String(50),
-        nullable=False
+        nullable=False,
+        unique=True
     )
 
     rights = Column(
