@@ -6,11 +6,11 @@ class IdMixin:
 
 
 class CreatedAtMixin:
-    created_at = Column(TIMESTAMP(timezone=True), default=func.now(), nullable=True)  # todo nullable false?
+    created_at = Column(TIMESTAMP(timezone=True), default=func.now(), nullable=True)
 
 
 class UpdatedAtMixin:
-    updated_at = Column(TIMESTAMP(timezone=True), default=func.now(), onupdate=func.now(), nullable=True)  # todo nullable false?
+    updated_at = Column(TIMESTAMP(timezone=True), default=func.now(), onupdate=func.now(), nullable=True)
 
 
 class CreateUpdateMixin(CreatedAtMixin, UpdatedAtMixin):
